@@ -3,14 +3,11 @@ import {
   Container, Typography, Select, MenuItem, FormControl, 
   InputLabel, Card, CardContent, Grid, Button, Tabs, Tab, Box, Pagination 
 } from '@mui/material';
-import { Log } from 'logging_middleware\logger.js'; 
-
+import { Log } from './logging_middleware/logger';
 export default function App() {
-
   const [tabValue, setTabValue] = useState(0);
-
   const [notifications, setNotifications] = useState([]);
-  const [limit, setLimit] = useState(10); // Defaults to top 10 as per rules
+  const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
   const [type, setType] = useState("");
 
@@ -32,16 +29,17 @@ export default function App() {
 
       const response = await fetch(url, {
         headers: { 
-          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJNYXBDbGFpbXMiOnsiYXVkIjoiaHR0cDovLzIwLjI0NC41Ni4xNDQvZXZhbHVhdGlvbi1zZXJ2aWNlIiwiZW1haWwiOiJhYTA3NTlAc3JtaXN0LmVkdS5pbiIsImV4cCI6MTc3NzcwMDQ5NywiaWF0IjoxNzc3Njk5NTk3LCJpc3MiOiJBZmZvcmQgTWVkaWNhbCBUZWNobm9sb2dpZXMgUHJpdmF0ZSBMaW1pdGVkIiwianRpIjoiZGY5OWJlMTktNmJjYy00M2VjLWE1MzktZDkyZTY5ZmU2Mjk1IiwibG9jYWxlIjoiZW4tSU4iLCJuYW1lIjoiYWRhcnNoIGFuYW5kIiwic3ViIjoiNWFmZjQ1MTYtMWU1OC00NGE1LThiNTQtMDY5NWVkYWIwNjU2In0sImVtYWlsIjoiYWEwNzU5QHNybWlzdC5lZHUuaW4iLCJuYW1lIjoiYWRhcnNoIGFuYW5kIiwicm9sbE5vIjoicmEyMzExMDAzMDEwMDYxIiwiYWNjZXNzQ29kZSI6IlFrYnB4SCIsImNsaWVudElEIjoiNWFmZjQ1MTYtMWU1OC00NGE1LThiNTQtMDY5NWVkYWIwNjU2IiwiY2xpZW50U2VjcmV0IjoiZVNHanZNV0JoZ2Rkak1zVSJ9.4mHq3nKXpMcO90J7D1GBPwNXcSN0qVIhxi9WkHEsDmE" 
+          "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJNYXBDbGFpbXMiOnsiYXVkIjoiaHR0cDovLzIwLjI0NC41Ni4xNDQvZXZhbHVhdGlvbi1zZXJ2aWNlIiwiZW1haWwiOiJhYTA3NTlAc3JtaXN0LmVkdS5pbiIsImV4cCI6MTc3NzcwNTY0NiwiaWF0IjoxNzc3NzA0NzQ2LCJpc3MiOiJBZmZvcmQgTWVkaWNhbCBUZWNobm9sb2dpZXMgUHJpdmF0ZSBMaW1pdGVkIiwianRpIjoiMTQ4ZWIxNDEtNDIxNS00NjM3LWFiOWUtMjkxNWE4NmU1ZGM5IiwibG9jYWxlIjoiZW4tSU4iLCJuYW1lIjoiYWRhcnNoIGFuYW5kIiwic3ViIjoiNWFmZjQ1MTYtMWU1OC00NGE1LThiNTQtMDY5NWVkYWIwNjU2In0sImVtYWlsIjoiYWEwNzU5QHNybWlzdC5lZHUuaW4iLCJuYW1lIjoiYWRhcnNoIGFuYW5kIiwicm9sbE5vIjoicmEyMzExMDAzMDEwMDYxIiwiYWNjZXNzQ29kZSI6IlFrYnB4SCIsImNsaWVudElEIjoiNWFmZjQ1MTYtMWU1OC00NGE1LThiNTQtMDY5NWVkYWIwNjU2IiwiY2xpZW50U2VjcmV0IjoiZVNHanZNV0JoZ2Rkak1zVSJ9.e8_fZYOErjuHviBxhIzko5RyGkadEDtxJcSXws08AJg" 
         }
       });
+
+      console.log("API Status:", response.status, "URL:", url);
       
       const data = await response.json();
       let rawList = data.notifications || [];
 
       if (tabValue === 1) {
         const weights = { "Placement": 3, "Result": 2, "Event": 1 };
-        
         rawList.sort((a, b) => {
           const weightDiff = (weights[b.Type] || 0) - (weights[a.Type] || 0);
           if (weightDiff !== 0) return weightDiff;
@@ -52,8 +50,7 @@ export default function App() {
       }
 
       setNotifications(rawList);
-
-      Log("frontend", "info", "api", `Fetched ${rawList.length} items on tab: ${tabValue === 0 ? 'All' : 'Priority'}`);
+      Log("frontend", "info", "api", `Fetched ${rawList.length} notifications`);
     } catch (error) {
       Log("frontend", "error", "api", `API Fetch Error: ${error.message}`);
     }
@@ -72,7 +69,7 @@ export default function App() {
       } catch (e) {
         console.error("Local storage error", e);
       }
-      Log("frontend", "info", "state", `Marked as read ID: ${id}`);
+      Log("frontend", "info", "state", `Marked read ID: ${id}`);
     }
   };
 
@@ -82,14 +79,13 @@ export default function App() {
         Campus Notifications Platform
       </Typography>
 
-      {/* Navigation Tabs */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
         <Tabs 
           value={tabValue} 
           onChange={(e, newVal) => {
             setTabValue(newVal);
-            setPage(1); // Reset page on tab switch
-            Log("frontend", "info", "page", `User navigated to ${newVal === 0 ? "All" : "Priority"} tab`);
+            setPage(1);
+            Log("frontend", "info", "page", `Mapsd to tab ${newVal === 0 ? "All" : "Priority"}`);
           }} 
           centered
         >
@@ -98,19 +94,11 @@ export default function App() {
         </Tabs>
       </Box>
 
-      {/* Query Filter Toolbar */}
       <Grid container spacing={2} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <InputLabel>Type filter</InputLabel>
-            <Select 
-              value={type} 
-              label="Type filter" 
-              onChange={(e) => {
-                setType(e.target.value);
-                setPage(1);
-              }}
-            >
+            <Select value={type} label="Type filter" onChange={(e) => { setType(e.target.value); setPage(1); }}>
               <MenuItem value="">All Categories</MenuItem>
               <MenuItem value="Placement">Placement</MenuItem>
               <MenuItem value="Result">Result</MenuItem>
@@ -122,14 +110,7 @@ export default function App() {
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <InputLabel>Notifications limit</InputLabel>
-            <Select 
-              value={limit} 
-              label="Notifications limit" 
-              onChange={(e) => {
-                setLimit(e.target.value);
-                setPage(1);
-              }}
-            >
+            <Select value={limit} label="Notifications limit" onChange={(e) => { setLimit(e.target.value); setPage(1); }}>
               <MenuItem value={10}>Top 10</MenuItem>
               <MenuItem value={15}>Top 15</MenuItem>
               <MenuItem value={20}>Top 20</MenuItem>
@@ -138,12 +119,11 @@ export default function App() {
         </Grid>
       </Grid>
 
-      {/* Items Rendering */}
       <Grid container spacing={2}>
         {notifications.length === 0 ? (
           <Grid item xs={12}>
             <Typography align="center" color="textSecondary" sx={{ py: 4 }}>
-              No notifications found matching your search.
+              No notifications found.
             </Typography>
           </Grid>
         ) : (
@@ -155,22 +135,15 @@ export default function App() {
                   variant="outlined"
                   sx={{ 
                     backgroundColor: isRead ? '#fcfcfc' : '#ffffff', 
-                    borderLeft: isRead ? '4px solid #b0bec5' : '4px solid #1976d2',
-                    transition: '0.2s',
-                    boxShadow: isRead ? 'none' : '0px 2px 4px rgba(0,0,0,0.05)',
-                    '&:hover': { boxShadow: '0px 4px 12px rgba(0,0,0,0.1)' }
+                    borderLeft: isRead ? '4px solid #b0bec5' : '4px solid #1976d2'
                   }}
                 >
                   <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Box>
-                      <Typography 
-                        variant="subtitle2" 
-                        color={isRead ? "textSecondary" : "primary"} 
-                        fontWeight="bold"
-                      >
+                      <Typography variant="subtitle2" color={isRead ? "textSecondary" : "primary"} fontWeight="bold">
                         {item.Type} {isRead && "(Read)"}
                       </Typography>
-                      <Typography variant="body1" sx={{ my: 0.5 }} fontWeight={isRead ? "normal" : "500"}>
+                      <Typography variant="body1" sx={{ my: 0.5 }}>
                         {item.Message}
                       </Typography>
                       <Typography variant="caption" color="textSecondary">
@@ -178,12 +151,7 @@ export default function App() {
                       </Typography>
                     </Box>
                     {!isRead && (
-                      <Button 
-                        variant="contained" 
-                        size="small" 
-                        color="primary"
-                        onClick={() => markAsRead(item.ID)}
-                      >
+                      <Button variant="contained" size="small" color="primary" onClick={() => markAsRead(item.ID)}>
                         Read
                       </Button>
                     )}
@@ -195,7 +163,6 @@ export default function App() {
         )}
       </Grid>
 
-      {/* Pagination Component */}
       <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
         <Pagination 
           count={5} 
